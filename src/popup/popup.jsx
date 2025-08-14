@@ -1,10 +1,10 @@
-// --- React and Material-UI Imports ---
-const { useState, useEffect } = React;
-const {
+import React, { useState, useEffect } from 'react';
+import ReactDOM from 'react-dom/client';
+import {
   Box, Tab, Tabs, Typography, Switch, FormControlLabel, RadioGroup, Radio, FormControl, InputLabel, Select, MenuItem,
   Button, List, ListItem, ListItemText, IconButton, Dialog, DialogActions, DialogContent, DialogTitle, TextField,
   Alert, CircularProgress, Paper
-} = MaterialUI;
+} from '@mui/material';
 
 // --- Helper Components & Constants ---
 
