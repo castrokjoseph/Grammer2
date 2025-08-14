@@ -229,8 +229,8 @@ function start() {
     injectStyles();
     createTooltip();
     discoverFields();
-    const observer = new MutationObserver(debouncedDiscover);
-    observer.observe(document.body, { childList: true, subtree: true, attributes: true });
+    mutationObserver = new MutationObserver(debouncedDiscover);
+    mutationObserver.observe(document.body, { childList: true, subtree: true, attributes: true });
     window.addEventListener('resize', debouncedUpdatePositions);
     window.addEventListener('scroll', debouncedUpdatePositions, true);
 }
@@ -242,5 +242,39 @@ if (window.self === window.top) { // Avoid running in iframes
         settings = { ...settings, ...result };
         start();
     });
-    chrome.storage.onChanged.addListener(() => window.location.reload());
+    chrome.storage.onChanged.addListener((changes, area) => {
+        if (area !== 'sync') return;
+        let needsUpdate = false;
+        if (changes.isEnabled !== undefined && changes.isEnabled.newValue !== settings.isEnabled) {
+            settings.isEnabled = changes.isEnabled.newValue;
+            needsUpdate = true;
+        }
+        if (changes.mode !== undefined && changes.mode.newValue !== settings.mode) {
+            settings.mode = changes.mode.newValue;
+            needsUpdate = true;
+        }
+        if (needsUpdate) {
+            handleSettingsUpdate();
+        }
+    });
+}
+
+let mutationObserver = null;
+
+function handleSettingsUpdate() {
+    // First, tear down everything.
+    for (const field of activeFields.keys()) {
+        removeField(field);
+    }
+    if (mutationObserver) {
+        mutationObserver.disconnect();
+        mutationObserver = null;
+    }
+    window.removeEventListener('resize', debouncedUpdatePositions);
+    window.removeEventListener('scroll', debouncedUpdatePositions, true);
+
+    // Then, restart if enabled.
+    if (settings.isEnabled) {
+        start();
+    }
 }
